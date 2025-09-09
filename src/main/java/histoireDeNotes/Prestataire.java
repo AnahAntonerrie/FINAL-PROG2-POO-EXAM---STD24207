@@ -5,35 +5,32 @@ import java.time.LocalDate;
 
 public class Prestataire extends Travailleur {
 
-
     public Prestataire(int id, String nom, String prenom, String email, String telephone,
                        BigDecimal tjmInitial, LocalDate dateInitiale) {
         super(id, nom, prenom, email, telephone);
-        ajouterPromotion(new Promotion(dateInitiale, tjmInitial, "TJM initial"));
+        Promotion premierePromotion = new Promotion(dateInitiale, tjmInitial, "TJM initial");
+        ajouterPromotion(premierePromotion);
     }
 
     public BigDecimal calculerSalaire(LocalDate debut, LocalDate fin) {
         BigDecimal totalSalaire = BigDecimal.ZERO;
 
-        for (Pointage pointage : getPointages()) {
-            LocalDate dateTravail = pointage.getDate();
+        for (Pointage p : getPointages()) {
+            LocalDate dateTravail = p.getDate();
 
-            // On vérifie si la date est dans la période demandée
-            boolean dansLaPeriode =
-                    (dateTravail.isEqual(debut) || dateTravail.isAfter(debut)) &&
-                            (dateTravail.isEqual(fin) || dateTravail.isBefore(fin));
+            boolean apresDebut = dateTravail.isEqual(debut) || dateTravail.isAfter(debut);
+            boolean avantFin   = dateTravail.isEqual(fin)   || dateTravail.isBefore(fin);
 
-            if (dansLaPeriode) {
-                // On ignore les absences
-                if (pointage.getType() == TypeTravail.ABS_PAYEE ||
-                        pointage.getType() == TypeTravail.ABS_NON_PAYEE) {
-                    continue;
+            if (apresDebut && avantFin) {
+                if (p.getType() != TypeTravail.ABS_PAYEE && p.getType() != TypeTravail.ABS_NON_PAYEE) {
+                    Promotion promo = promotionActiveA(dateTravail);
+
+                    if (promo != null) {
+                        BigDecimal tjm = promo.getValeur();
+                        BigDecimal salaireJour = tjm.multiply(p.getQuota());
+                        totalSalaire = totalSalaire.add(salaireJour);
+                    }
                 }
-                Promotion promo = promotionActiveA(dateTravail);
-
-                BigDecimal tjm = (promo != null) ? promo.getValeur() : BigDecimal.ZERO;
-
-                totalSalaire = totalSalaire.add(tjm.multiply(pointage.getQuota()));
             }
         }
 
