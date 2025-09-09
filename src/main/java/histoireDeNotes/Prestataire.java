@@ -6,7 +6,7 @@ import java.time.LocalDate;
 public class Prestataire extends Travailleur {
 
     public Prestataire(int id, String nom, String prenom, String email, String telephone,
-                       BigDecimal tjmInitial, LocalDate dateInitiale) {
+                        BigDecimal tjmInitial, LocalDate dateInitiale) {
         super(id, nom, prenom, email, telephone);
         Promotion premierePromotion = new Promotion(dateInitiale, tjmInitial, "TJM initial");
         ajouterPromotion(premierePromotion);
